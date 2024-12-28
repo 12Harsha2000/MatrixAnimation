@@ -43,8 +43,10 @@ namespace MatrixAnimation
 {
     public partial class Form1 : Form
     {
-        private const int Rows = 4; // Number of rows in the matrix
-        private const int Cols = 4; // Number of columns in the matrix
+        //private const int Rows = 4; // Number of rows in the matrix
+        //private const int Cols = 4; // Number of columns in the matrix
+        private const int MaxSize = 8; // Maximum size of the matrix (8x8)
+        private int currentSize = 2; // Current size of the matrix (starting with 2x2)
         private int currentNumber = 2; // Starting number for animation
         private int[,] matrix; // The matrix grid
         private bool isAnimating = false; // Animation state
@@ -53,12 +55,18 @@ namespace MatrixAnimation
         public Form1()
         {
             InitializeComponent();
-            InitializeMatrix();
+            //InitializeMatrix();
+            InitializeMatrix(currentSize);
         }
 
-        private void InitializeMatrix()
+        //private void InitializeMatrix()
+        //{
+        //    matrix = new int[Rows, Cols];
+        //}
+
+        private void InitializeMatrix(int size)
         {
-            matrix = new int[Rows, Cols];
+            matrix = new int[size, size];
         }
 
         private void btnStart_Click(object sender, EventArgs e)
@@ -100,22 +108,29 @@ namespace MatrixAnimation
                     currentNumber = 2;
                 }
 
+                // If the current size is less than 8x8, increase the size
+                if (currentSize < MaxSize)
+                {
+                    currentSize++;
+                    InitializeMatrix(currentSize); // Reinitialize the matrix with the new size
+                }
+
                 // Redraw the grid
                 panelGrid.Invoke(new Action(() =>
                 {
                     panelGrid.Refresh(); // Trigger a repaint of the panel
                 }));
 
-                Thread.Sleep(200); // Adjust speed of animation
+                Thread.Sleep(500); // Adjust speed of animation
             }
         }
 
         private void UpdateMatrix(int number)
         {
             Random rand = new Random();
-            for (int i = 0; i < Rows; i++)
+            for (int i = 0; i < currentSize; i++)
             {
-                for (int j = 0; j < Cols; j++)
+                for (int j = 0; j < currentSize; j++)
                 {
                     matrix[i, j] = (rand.Next(2, 9) == number) ? number : 0;
                 }
@@ -132,12 +147,12 @@ namespace MatrixAnimation
         private void panelGrid_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
-            int cellWidth = panelGrid.Width / Cols;
-            int cellHeight = panelGrid.Height / Rows;
+            int cellWidth = panelGrid.Width / currentSize;
+            int cellHeight = panelGrid.Height / currentSize;
 
-            for (int i = 0; i < Rows; i++)
+            for (int i = 0; i < currentSize; i++)
             {
-                for (int j = 0; j < Cols; j++)
+                for (int j = 0; j < currentSize; j++)
                 {
                     int x = j * cellWidth;
                     int y = i * cellHeight;
