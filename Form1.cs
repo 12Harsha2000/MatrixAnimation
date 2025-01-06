@@ -43,30 +43,13 @@ namespace MatrixAnimation
 {
     public partial class Form1 : Form
     {
-        //private const int Rows = 4; // Number of rows in the matrix
-        //private const int Cols = 4; // Number of columns in the matrix
-        private const int MaxSize = 8; // Maximum size of the matrix (8x8)
-        private int currentSize = 2; // Current size of the matrix (starting with 2x2)
-        private int currentNumber = 2; // Starting number for animation
-        private int[,] matrix; // The matrix grid
+        private int gridSize = 2; // Initial grid size
         private bool isAnimating = false; // Animation state
         private bool isPaused = false; // Pause state
 
         public Form1()
         {
             InitializeComponent();
-            //InitializeMatrix();
-            InitializeMatrix(currentSize);
-        }
-
-        //private void InitializeMatrix()
-        //{
-        //    matrix = new int[Rows, Cols];
-        //}
-
-        private void InitializeMatrix(int size)
-        {
-            matrix = new int[size, size];
         }
 
         private void btnStart_Click(object sender, EventArgs e)
@@ -74,7 +57,7 @@ namespace MatrixAnimation
             if (!isAnimating)
             {
                 isAnimating = true;
-                isPaused = false; // Ensure animation is not paused
+                isPaused = false;
                 Task.Run(() => StartAnimation());
             }
         }
@@ -84,8 +67,14 @@ namespace MatrixAnimation
             if (isAnimating)
             {
                 isPaused = !isPaused; // Toggle pause state
-                btnPause.Text = isPaused ? "Resume" : "Pause"; // Update button text
+                btnPause.Text = isPaused ? "Resume" : "Pause";
             }
+        }
+
+        private void btnStop_Click(object sender, EventArgs e)
+        {
+            isAnimating = false;
+            panelGrid.Invoke(new Action(() => panelGrid.Refresh())); // Clear grid
         }
 
         private void StartAnimation()
@@ -94,93 +83,49 @@ namespace MatrixAnimation
             {
                 if (isPaused)
                 {
-                    Thread.Sleep(100); // Check the pause state periodically
+                    Thread.Sleep(100); // Check pause state periodically
                     continue;
                 }
 
-                // Update the matrix with the current number
-                UpdateMatrix(currentNumber);
-
-                // Increment the number and loop back to 2 after 8
-                currentNumber++;
-                if (currentNumber > 8)
-                {
-                    currentNumber = 2;
-                }
-
-                // If the current size is less than 8x8, increase the size
-                if (currentSize < MaxSize)
-                {
-                    currentSize++;
-                    InitializeMatrix(currentSize); // Reinitialize the matrix with the new size
-                }
-
-                // Redraw the grid
+                // Refresh the grid
                 panelGrid.Invoke(new Action(() =>
                 {
                     panelGrid.Refresh(); // Trigger a repaint of the panel
                 }));
 
-                Thread.Sleep(500); // Adjust speed of animation
-            }
-        }
+                Thread.Sleep(1200); // Duration for each grid size
 
-        private void UpdateMatrix(int number)
-        {
-            Random rand = new Random();
-            for (int i = 0; i < currentSize; i++)
-            {
-                for (int j = 0; j < currentSize; j++)
+                // Increment grid size
+                gridSize++;
+                if (gridSize > 8)
                 {
-                    matrix[i, j] = (rand.Next(2, 9) == number) ? number : 0;
+                    gridSize = 2; // Loop back to 2x2
                 }
             }
         }
-
-        //protected override void OnFormClosing(FormClosingEventArgs e)
-        //{
-        //    // Stop the animation when the form is closing
-        //    isAnimating = false;
-        //    base.OnFormClosing(e);
-        //}
 
         private void panelGrid_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
-            int cellWidth = panelGrid.Width / currentSize;
-            int cellHeight = panelGrid.Height / currentSize;
+            int cellWidth = panelGrid.Width / gridSize;
+            int cellHeight = panelGrid.Height / gridSize;
 
-            for (int i = 0; i < currentSize; i++)
+            Pen greenPen = new Pen(Color.Green, 2); // Green border for the grid
+
+            for (int i = 0; i < gridSize; i++)
             {
-                for (int j = 0; j < currentSize; j++)
+                for (int j = 0; j < gridSize; j++)
                 {
                     int x = j * cellWidth;
                     int y = i * cellHeight;
 
-                    // Draw cell borders
-                    g.DrawRectangle(Pens.Black, x, y, cellWidth, cellHeight);
-
-                    // Draw the number in the cell
-                    if (matrix[i, j] != 0)
-                    {
-                        string text = matrix[i, j].ToString();
-                        var size = g.MeasureString(text, this.Font);
-                        g.DrawString(text, this.Font, Brushes.Green,
-                            x + (cellWidth - size.Width) / 2,
-                            y + (cellHeight - size.Height) / 2);
-                    }
-                    // Draw active cells
-                    //if (matrix[i, j] == 1)
-                    //{
-                    //    g.FillRectangle(Brushes.Green, x, y, cellWidth, cellHeight);
-                    //}
+                    // Draw grid cell borders in green
+                    g.DrawRectangle(greenPen, x, y, cellWidth, cellHeight);
                 }
             }
-        }
 
-        private void btnStop_Click(object sender, EventArgs e)
-        {
-            isAnimating = false;
+            greenPen.Dispose(); // Clean up resources
         }
     }
 }
+
