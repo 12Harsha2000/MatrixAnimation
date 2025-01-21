@@ -33,6 +33,102 @@
 
 
 
+//using System;
+//using System.Drawing;
+//using System.Threading;
+//using System.Threading.Tasks;
+//using System.Windows.Forms;
+
+//namespace MatrixAnimation
+//{
+//    public partial class Form1 : Form
+//    {
+//        private int gridSize = 2; // Initial grid size
+//        private bool isAnimating = false; // Animation state
+//        private bool isPaused = false; // Pause state
+
+//        public Form1()
+//        {
+//            InitializeComponent();
+//        }
+
+//        private void btnStart_Click(object sender, EventArgs e)
+//        {
+//            if (!isAnimating)
+//            {
+//                isAnimating = true;
+//                isPaused = false;
+//                Task.Run(() => StartAnimation());
+//            }
+//        }
+
+//        private void btnPause_Click(object sender, EventArgs e)
+//        {
+//            if (isAnimating)
+//            {
+//                isPaused = !isPaused; // Toggle pause state
+//                btnPause.Text = isPaused ? "Resume" : "Pause";
+//            }
+//        }
+
+//        private void btnStop_Click(object sender, EventArgs e)
+//        {
+//            isAnimating = false;
+//            panelGrid.Invoke(new Action(() => panelGrid.Refresh())); // Clear grid
+//        }
+
+//        private void StartAnimation()
+//        {
+//            while (isAnimating)
+//            {
+//                if (isPaused)
+//                {
+//                    Thread.Sleep(100); // Check pause state periodically
+//                    continue;
+//                }
+
+//                // Refresh the grid
+//                panelGrid.Invoke(new Action(() =>
+//                {
+//                    panelGrid.Refresh(); // Trigger a repaint of the panel
+//                }));
+
+//                Thread.Sleep(1200); // Duration for each grid size
+
+//                // Increment grid size
+//                gridSize++;
+//                if (gridSize > 8)
+//                {
+//                    gridSize = 2; // Loop back to 2x2
+//                }
+//            }
+//        }
+
+//        private void panelGrid_Paint(object sender, PaintEventArgs e)
+//        {
+//            Graphics g = e.Graphics;
+//            int cellWidth = panelGrid.Width / gridSize;
+//            int cellHeight = panelGrid.Height / gridSize;
+
+//            Pen greenPen = new Pen(Color.Green, 2); // Green border for the grid
+
+//            for (int i = 0; i < gridSize; i++)
+//            {
+//                for (int j = 0; j < gridSize; j++)
+//                {
+//                    int x = j * cellWidth;
+//                    int y = i * cellHeight;
+
+//                    // Draw grid cell borders in green
+//                    g.DrawRectangle(greenPen, x, y, cellWidth, cellHeight);
+//                }
+//            }
+
+//            greenPen.Dispose(); // Clean up resources
+//        }
+//    }
+//}
+
 using System;
 using System.Drawing;
 using System.Threading;
@@ -43,38 +139,24 @@ namespace MatrixAnimation
 {
     public partial class Form1 : Form
     {
-        private int gridSize = 2; // Initial grid size
+        private int gridSize = 2; // Default grid size
         private bool isAnimating = false; // Animation state
         private bool isPaused = false; // Pause state
 
         public Form1()
         {
             InitializeComponent();
+            PopulateGridSizeDropdown(); // Add grid sizes to the dropdown
         }
 
-        private void btnStart_Click(object sender, EventArgs e)
+        // Populate the dropdown with grid sizes
+        private void PopulateGridSizeDropdown()
         {
-            if (!isAnimating)
+            for (int i = 3; i <= 8; i++) // 3x3 to 8x8
             {
-                isAnimating = true;
-                isPaused = false;
-                Task.Run(() => StartAnimation());
+                comboBoxGridSize.Items.Add($"{i}x{i}");
             }
-        }
-
-        private void btnPause_Click(object sender, EventArgs e)
-        {
-            if (isAnimating)
-            {
-                isPaused = !isPaused; // Toggle pause state
-                btnPause.Text = isPaused ? "Resume" : "Pause";
-            }
-        }
-
-        private void btnStop_Click(object sender, EventArgs e)
-        {
-            isAnimating = false;
-            panelGrid.Invoke(new Action(() => panelGrid.Refresh())); // Clear grid
+            comboBoxGridSize.SelectedIndex = 0; // Default selection
         }
 
         private void StartAnimation()
@@ -83,7 +165,7 @@ namespace MatrixAnimation
             {
                 if (isPaused)
                 {
-                    Thread.Sleep(100); // Check pause state periodically
+                    Thread.Sleep(100); // Wait while paused
                     continue;
                 }
 
@@ -95,11 +177,11 @@ namespace MatrixAnimation
 
                 Thread.Sleep(1200); // Duration for each grid size
 
-                // Increment grid size
+                // Increment grid size for animation
                 gridSize++;
                 if (gridSize > 8)
                 {
-                    gridSize = 2; // Loop back to 2x2
+                    gridSize = 2; // Reset to 2x2
                 }
             }
         }
@@ -125,6 +207,42 @@ namespace MatrixAnimation
             }
 
             greenPen.Dispose(); // Clean up resources
+        }
+
+        // Menu and Toolbar Event Handlers
+        private void Start_Click(object sender, EventArgs e)
+        {
+            if (!isAnimating)
+            {
+                isAnimating = true;
+                isPaused = false;
+
+                if (comboBoxGridSize.SelectedItem != null)
+                {
+                    string[] gridParts = comboBoxGridSize.SelectedItem.ToString().Split('x');
+                    gridSize = int.Parse(gridParts[0]); // Set grid size from dropdown
+                }
+
+                Task.Run(() => StartAnimation());
+            }
+        }
+
+        private void PauseResume_Click(object sender, EventArgs e)
+        {
+            if (isAnimating)
+            {
+                isPaused = !isPaused; // Toggle pause state
+                pauseResumeMenuItem.Text = isPaused ? "Resume" : "Pause";
+                pauseResumeToolStripButton.Text = isPaused ? "Resume" : "Pause";
+            }
+        }
+
+        private void Stop_Click(object sender, EventArgs e)
+        {
+            isAnimating = false;
+            panelGrid.Invoke(new Action(() => panelGrid.Refresh())); // Clear grid
+            pauseResumeMenuItem.Text = "Pause"; // Reset menu text
+            pauseResumeToolStripButton.Text = "Pause"; // Reset toolbar text
         }
     }
 }
